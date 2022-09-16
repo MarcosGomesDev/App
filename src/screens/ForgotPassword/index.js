@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux';
 import { showToast } from '../../store/modules/toast/actions';
 import { isValidEmail } from '../../utils/validators';
 
-import Container from '../../components/Container';
+import Container from '../../components/core/Container';
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import Colors from '../../styles/Colors'
 import Input from '../../components/Input';

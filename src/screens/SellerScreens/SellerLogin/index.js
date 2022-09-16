@@ -5,7 +5,7 @@ TouchableOpacity, ActivityIndicator } from 'react-native';
 import {showToast} from '../../../store/modules/toast/actions'
 import {useDispatch} from 'react-redux'
 
-import Container from '../../../components/Container';
+import Container from '../../../components/core/Container';
 import Colors from '../../../styles/Colors'
 import Input from '../../../components/Input';
 import api from '../../../services/api'

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, StatusBar, Platform, TouchableWithoutFeedback,
+import { View, Text, StyleSheet, StatusBar, TouchableWithoutFeedback,
 Animated, Easing} from 'react-native';
 import {getStatusBarHeight} from 'react-native-status-bar-height'
 import {useDispatch, useSelector} from 'react-redux'
@@ -57,7 +57,7 @@ const Toast = () => {
         <View style={{zIndex: 100, elevation: 100}}>
             <StatusBar
                 barStyle={styleStatusBar}
-                backgroundColor={colors[toastfy.type]}
+                backgroundColor={toastfy.show ? colors[toastfy.type] : '#000'}
                 translucent={true}
             />
             <TouchableWithoutFeedback

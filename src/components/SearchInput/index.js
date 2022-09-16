@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons'
 import Colors from '../../styles/Colors'
 
 // create a component
-const MyComponent = () => {
+const SearchInput = () => {
     const navigation = useNavigation()
 
     return (
@@ -30,7 +30,8 @@ const styles = StyleSheet.create({
         height: 40,
         borderWidth: 1,
         borderColor: Colors.primary,
-        borderRadius: 150
+        borderRadius: 150,
+        width: '100%',
     },
     searchIcon: {
         fontWeight: 'bold',
@@ -45,4 +46,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default MyComponent;
+export default SearchInput;

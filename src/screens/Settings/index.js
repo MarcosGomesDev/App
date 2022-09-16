@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { SafeAreaView, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { DrawerActions } from '@react-navigation/native';
 
-import Container from '../../components/Container';
+import Container from '../../components/core/Container';
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import Colors from '../../styles/Colors'
 

@@ -7,15 +7,12 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { useNavigation } from '@react-navigation/native';
 import {showToast} from '../../store/modules/toast/actions'
 import {useDispatch} from 'react-redux'
-
-import {getData} from '../../utils/storage'
+import { useLogin } from '../../context/LoginProvider';
 
 import api from '../../services/api'
-import { useLogin } from '../../context/LoginProvider';
-import Container from '../../components/Container';
+import Container from '../../components/core/Container';
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import Colors from '../../styles/Colors';
-
 
 const {width} = Dimensions.get('window')
 
@@ -26,8 +23,11 @@ const ProductItem = ({ route }) => {
   const navigation = useNavigation()
   const [activeIndex, setActiveIndex] = useState(0)
   const [verify, setVerify] = useState(false)
+  const [favorites, setFavorites] = useState([])
+  const [product, setProduct] = useState()
   const comments = item.comments
-
+  const price = item.price.toString()
+  
   const images = [
     {
       id: 1,
@@ -44,12 +44,19 @@ const ProductItem = ({ route }) => {
   ]
 
   const vefiryExistFavorite = async () => {
-    const user = await getData().then()
-    let verify = await api.get('/user/favorites', {params: {userId: user.id}}).then(res => res.data)
-    const valid = verify.map(({_id}) => _id).includes(item._id)
-    setVerify(valid)
+    try {
+      const response = await api.get('/user/favorites',
+        {
+          headers: {authorization: `Bearer ${profile.token}`},
+      })
+      setFavorites(response.data)
+      const valid = response.data.map(({_id}) => _id).includes(item._id)
+      setVerify(valid)
+    } catch (error) {
+      console.log(error.response.data)
+    }
   }
-
+  console.log(profile)
   useEffect(() => {
     if(profile.seller === false) {
       vefiryExistFavorite()
@@ -57,22 +64,32 @@ const ProductItem = ({ route }) => {
   }, [verify])
 
   const addToFavorites = async (item) => {
-    const user = await getData().then()
-    let favorites = await api.get('/user/favorites', {params: {userId: user.id}})
-      .then(res => res.data)
-      // .catch((error) => dispatch(showToast(error.response.data, 'error', 'error')))
     const validExist = favorites.map(({_id})=>_id).includes(item)
-
     try {
       if(validExist) {
-        await api.delete('/user/favorites/delete', {params: {userId: user.id, productId: item}})
-          .then(res => dispatch(showToast(res.data, 'success', 'done')))
+        await api.delete('/user/favorites/delete', 
+        {
+          headers: {authorization: `Bearer ${profile.token}`},
+          params: {productId: item}
+        })
+          .then(res => {
+            dispatch(showToast(res.data, 'success', 'done'))
+            vefiryExistFavorite()
+          })
           .catch((error) => dispatch(showToast(error.response.data, 'error', 'error')))
       } else {
-        const res = await api.post('/user/favorites/new', {}, {
-          params: {productId: item, userId: user.id}
+        await api.post('/user/favorite/new', 
+        {
+          params: {productId: item, userId: profile.id}
         })
-        dispatch(showToast(res.data, 'success', 'favorite'))
+        .then(res => {
+          dispatch(showToast(res.data, 'success', 'done'))
+          vefiryExistFavorite()
+        })
+        .catch((error) => {
+          console.log(error.response.data)
+          dispatch(showToast(error.response.data, 'error', 'error'))
+        })
       }
     } catch (error) {
       dispatch(showToast(error.response.data, 'error', 'error'))
@@ -89,7 +106,7 @@ const ProductItem = ({ route }) => {
     <Container>
       <View style={styles.header}>
         <TouchableOpacity
-          style={{marginTop: 2}}
+          style={{marginTop: 2, width: '12.5%', height: 30, alignItems: 'center', justifyContent: 'center'}}
           onPress={navigation.goBack}
         >
           <Icon name="arrow-back" size={30} color={Colors.primary} />
@@ -100,7 +117,7 @@ const ProductItem = ({ route }) => {
         {profile.seller === false && (
           <TouchableOpacity
             onPress={() => addToFavorites(item._id)}
-            style={{position: 'absolute', right: 15, top: 13}}
+            style={{width: '12.5%', height: 30, marginTop: 2, alignItems: 'center', justifyContent: 'center'}}
           >
             <Icon 
               name={verify === true ? "favorite" : "favorite-outline"}
@@ -153,12 +170,13 @@ const ProductItem = ({ route }) => {
             : <></>
           }
           <Text style={[styles.price, {marginTop: item.images.length === 1 ? 20 : 0}]}>
-            R$ {item.price}
+            R$ {price.replace('.', ',')}
           </Text>
           <View style={styles.detailsContainer}>
             <Text style={styles.titleDescription}>Descrição</Text>
-            <Text numberOfLines={3} style={styles.description}>Bolo de Doce de Leite com uasduasdhauhfashf 
-            ausgdsauhfahahfs auhfuashfuasfuhauahuvhvhuasfuasbviabib  aufbasubhiaufhiubh</Text>
+            <Text numberOfLines={3} style={styles.description}>
+              {item.description}
+            </Text>
           </View>
           {profile.seller === false && (
             <View style={styles.vendorContainer}>
@@ -174,7 +192,7 @@ const ProductItem = ({ route }) => {
             <Text style={styles.commentsTitle}>
               Comentários
             </Text>
-            {comments.map((result) => (
+            {comments?.map((result) => (
               <View key={result => result.id} style={{marginBottom: 10}}>
                 <Text style={{textTransform: 'capitalize', fontWeight: 'bold', color: '#000'}}>
                   {result.name}
@@ -205,20 +223,21 @@ const ProductItem = ({ route }) => {
 
 const styles = StyleSheet.create({
   header: {
-    padding: 15,
+    paddingVertical: 15,
     flexDirection: 'row',
     backgroundColor: Colors.white,
     shadowColor: Colors.black,
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.6,
-    elevation: 9,
+    elevation: 1,
     zIndex: 1,
   },
   title: {
     fontSize: 20,
     color: Colors.primary,
     marginTop: 3,
-    paddingLeft: 10
+    paddingLeft: 10,
+    width: '75%'
   },
   image: {
     width,

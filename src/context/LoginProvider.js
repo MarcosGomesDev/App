@@ -6,28 +6,29 @@ const LoginProvider = ({children}) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [profile, setProfile] = useState({});
 
-    
-
-    useEffect(() => {
-        const getUser = async () => {
-            await getData().then(userInfo => {
-                if(!userInfo) {
-                    setIsLoggedIn(false)
-                    setProfile({})
+    const getUser = () => {
+        return new Promise((resolve, reject) => {
+            getData().then(data => {
+                if(!data) {
+                    setIsLoggedIn(false);
+                    setProfile({});
                     return
-                }
-                if(!userInfo.token) {
-                    setIsLoggedIn(false)
-                    setProfile({})
+                } if(!data.token) {
+                    setIsLoggedIn(false);
+                    setProfile({});
+                    return
                 } else {
-                    setIsLoggedIn(true)
-                    setProfile(userInfo)
+                    setIsLoggedIn(true);
+                    setProfile(data);
+                    resolve();
                 }
             })
-        }
-        
+        })
+    }
+
+    useEffect(() => {
         getUser()
-    }, [])
+    } , []);
 
     return (
         <LoginContext.Provider

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import {AppStack} from './AppStack';
 import AuthRoutes from './AuthRoutes';
@@ -7,6 +7,7 @@ import {useLogin} from '../context/LoginProvider';
 
 const Routes = () => {
     const {isLoggedIn} = useLogin();
+
 
     return (
         <NavigationContainer>

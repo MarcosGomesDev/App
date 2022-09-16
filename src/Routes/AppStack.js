@@ -1,9 +1,7 @@
 import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 
-import {DEFAULT_SCREEN_OPTIONS} from '../navigation/options'
-
-import Login from '../screens/Login'
+import Login from '../screens/UserScreens/Login'
 import UserRegister from '../screens/UserScreens/UserRegister'
 import SellerLogin from '../screens/SellerScreens/SellerLogin'
 import SellerRegister from '../screens/SellerScreens/SellerRegister/index'
@@ -19,7 +17,9 @@ const Stack = createStackNavigator()
 export function AppStack() {
     return (
         <Stack.Navigator
-            screenOptions={DEFAULT_SCREEN_OPTIONS}
+            screenOptions={{
+                headerShown: false
+            }}
         >
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="UserRegister" component={UserRegister} />

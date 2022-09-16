@@ -1,32 +1,20 @@
 
-import React, {useEffect, useState} from 'react';
-import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import Colors from '../../styles/Colors';
-import api from '../../services/api'
 import ProductListItem from './ProductListItem';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
 import { widthPercent } from '../../utils/dimensions';
 
+import useProducts from '../../hooks/useProducts'
+
 const ProductList = () => {
-    const [products, setProducts] = useState([])
+    const [products] = useProducts()
     const navigation = useNavigation()
-    
-    const getProducts = () => {
-        return new Promise((resolve, reject) => {
-            api.get('/products')
-            .then(response => {
-                setProducts(response.data)
-                resolve()
-            })
-            .catch(error => {
-                reject()
-            })
-        })
-    }
 
     const renderProducts = (item) => (
         <TouchableOpacity
@@ -51,18 +39,6 @@ const ProductList = () => {
         </TouchableOpacity>
     )
 
-    useEffect(() => {
-        let unmounted = false
-
-        if(!unmounted) {
-            getProducts()
-        }
-
-        return () => {
-            unmounted = true
-        }
-    }, [])
-
     return (
         <View style={styles.container}>
             {products.map((item) => (
@@ -76,7 +52,6 @@ const ProductList = () => {
     )
 }
 
-// define your styles
 const styles = StyleSheet.create({
     container: {
         flex: 1,

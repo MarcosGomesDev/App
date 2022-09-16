@@ -1,26 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, View, TouchableOpacity, StyleSheet,
 Text, Image, ActivityIndicator, Modal } from 'react-native';
 import { DrawerActions } from '@react-navigation/native';
 
-import {getData} from '../../utils/storage'
 import {showToast} from '../../store/modules/toast/actions'
 import { useDispatch } from 'react-redux';
 import * as ImagePicker from 'react-native-image-picker';
 
-import api from '../../services/api'
-import Container from '../../components/Container';
+import Container from '../../components/core/Container';
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import Colors from '../../styles/Colors'
 import { useLogin } from '../../context/LoginProvider';
+import { storeData, removeData } from '../../utils/storage';
 
 const Profile = (props) => {
-    const {profile} = useLogin()
+    const {setIsLoggedIn, setProfile, profile} = useLogin()
     const dispatch = useDispatch()
     const [modalVisible, setModalVisible] = useState(false)
-    const [avatar, setAvatar] = useState([])
+    const [avatar, setAvatar] = useState({})
     const [loading, setLoading] = useState(false)
-
+    
     const options = {
         selectionLimit: 1,
         mediaType: 'photo',
@@ -39,31 +38,22 @@ const Profile = (props) => {
             return
         }
         
-        const image = data.assets
+        const image = data.assets[0]
 
-        const avatar = []
-
-        for(let i = 0; i < image.length; i++){
-            avatar.push({
-                uri: image[i].uri,
-                type: image[i].type,
-                name: image[i].fileName
-            })
-        }
-
-        setAvatar(avatar)
+        setAvatar(image)
     }
 
     const uploadImage = async () => {
+        setLoading(true)
         let formdata = new FormData()
     
         formdata.append('avatar', {
             name: new Date() + '_avatar',
-            uri: avatar[0].uri,
-            type: avatar[0].type
+            uri: avatar.uri,
+            type: avatar.type
         })
-
-        const response = await fetch(PROCESS.env.URL + '/user/upload-profile', {
+        
+        const response = await fetch(`${process.env.URL}/user/upload-profile`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -71,13 +61,36 @@ const Profile = (props) => {
                 authorization: `Bearer ${profile.token}`
             },
             body: formdata
-        })
-        
+        }).catch(err => console.log(err))
+
         const data = await response.json()
-        if(response.status === 201){
+
+        if(response.status === 201) {
+            setLoading(false)
+            const userInfo = {...profile, avatar: data.avatar}
+            await storeData(userInfo)
+            setProfile(userInfo)
             setModalVisible(false)
-            dispatch(showToast(data, 'success', 'done'))
-        } else {
+            setAvatar([])
+            dispatch(showToast(data.message, 'success', 'done'))
+        }
+        
+        if(response.status === 413) {
+            setLoading(false)
+            setModalVisible(false)
+            dispatch(showToast(data, 'error', 'error'))
+            removeData()
+            setIsLoggedIn(false)
+        }
+
+        if(response.status === 401) {
+            setLoading(false)
+            setModalVisible(false)
+            dispatch(showToast(data, 'error', 'error'))
+        }
+
+        if(response.status === 500) {
+            setLoading(false)
             setModalVisible(false)
             dispatch(showToast(data, 'error', 'error'))
         }
@@ -123,7 +136,10 @@ const Profile = (props) => {
                     <View style={styles.modalHeader}>
                         <TouchableOpacity
                             style={styles.closeModal}
-                            onPress={() => setModalVisible(false)}
+                            onPress={() => {
+                                setModalVisible(false)
+                                setAvatar([])
+                            }}
                         >
                             <Icon name="close" size={30} color={Colors.primary} />
                         </TouchableOpacity>
@@ -131,7 +147,7 @@ const Profile = (props) => {
                     <View>
                         <Image
                             style={[styles.profileImage, {alignSelf: 'center', marginVertical: 20}]}
-                            source={avatar !== '' ? avatar : {uri: profile.avatar}}
+                            source={{uri: avatar.uri ? avatar.uri : profile.avatar}}
                             />
                         <TouchableOpacity
                             onPress={() => handleImageUser()}

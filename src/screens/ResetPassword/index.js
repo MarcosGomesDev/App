@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { showToast } from '../../store/modules/toast/actions';
 
-import Container from '../../components/Container';
+import Container from '../../components/core/Container';
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import Colors from '../../styles/Colors';
 import api from '../../services/api'

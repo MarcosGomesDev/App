@@ -7,7 +7,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import {showToast} from '../../../store/modules/toast/actions'
 import {useDispatch} from 'react-redux'
 
-import Container from '../../../components/Container';
+import Container from '../../../components/core/Container';
 import Colors from '../../../styles/Colors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import Input from '../../../components/Input';

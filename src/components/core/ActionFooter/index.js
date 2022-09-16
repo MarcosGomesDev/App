@@ -3,9 +3,13 @@ import {View, TouchableOpacity, Text, StyleSheet} from 'react-native';
 
 import Colors from '../../../styles/Colors'
 
-const ActionFooter = ({children}) => {
+const ActionFooter = ({children, pdv, btw, btc}) => {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {
+      borderTopWidth: btw,
+      borderTopColor: btc,
+      paddingVertical: pdv,
+    }]}>
       <View style={styles.inner}>{children}</View>
     </View>
   );
@@ -28,11 +32,6 @@ export const ActionSecondaryButton = ({title, onPress}) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 20,
-    position: 'absolute',
-    bottom: 0
-  },
   inner: {
     flexDirection: 'row',
     justifyContent: 'center',

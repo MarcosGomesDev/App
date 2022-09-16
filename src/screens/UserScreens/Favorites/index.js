@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, Text, StyleSheet,
+import { View, ScrollView, Text, StyleSheet, ActivityIndicator,
 Image } from 'react-native';
 import {useDispatch} from 'react-redux'
 
@@ -7,24 +7,26 @@ import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 
 import {showToast} from '../../../store/modules/toast/actions'
-import { getData } from '../../../utils/storage'
 
+import { useLogin } from '../../../context/LoginProvider';
+import { removeData } from '../../../utils/storage';
 import api from '../../../services/api'
-import Container from '../../../components/Container';
+import Container from '../../../components/core/Container';
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import Colors from '../../../styles/Colors'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const Favorites = (props) => {
     const dispatch = useDispatch()
+    const {setIsLoggedIn, profile} = useLogin()
     const navigation = useNavigation()
     const [favorites, setFavorites] = useState([])
 
     const remove = async(item) => {
-        const userId = await getData().then()
+        
         try {
             const res = await api.delete('/user/favorites/delete', {params: {
-                userId: userId.id,
+                userId: profile.id,
                 productId: item._id
             }})
             dispatch(showToast(res.data, 'success', 'favorite'))
@@ -33,23 +35,50 @@ const Favorites = (props) => {
         }
     }
 
+    async function loadFavorites() {
+        try {
+            const response = await api.get('/user/favorites',
+                {
+                    headers: {
+                        authorization: `Bearer ${profile.token}`
+                    }
+                }
+            )
+
+            setFavorites(response.data)
+
+        } catch (error) {
+            const statusCode = error.response.status
+            const data = error.response.data
+            
+            if(statusCode === 413) {
+                dispatch(showToast(data, 'error', 'error'))
+                removeData()
+                setIsLoggedIn(false)
+            }
+        }
+    }
+
     useEffect(() => {
-        async function loadFavorites() {
-            const user = await getData().then()
-            const res = await api.get('/user/favorites', {params: {userId: user.id}})
-            setFavorites(res.data)
+        let unmounted = false
+
+        if(!unmounted) {
+            loadFavorites()
         }
 
-        loadFavorites()
+        return () => {
+            unmounted = true
+        }
     }, [favorites])
 
     return (
         <Container>
             <View style={styles.header}>
                 <TouchableOpacity
+                    style={{width: 50, height: 30, alignItems: 'center', justifyContent: 'center'}}
                     onPress={() => props.navigation.dispatch(DrawerActions.toggleDrawer())}
                 >
-                    <Icon name="menu" size={26} color={Colors.primary} />
+                    <Icon name="menu" size={30} color={Colors.primary} />
                 </TouchableOpacity>
                 <Text style={styles.title}>Favoritos</Text>
             </View>
@@ -87,7 +116,7 @@ const Favorites = (props) => {
                                             {item.seller.name}
                                         </Text>
                                         <Text style={styles.productPrice}>
-                                            R$ {item.price}
+                                            R$ {item.price.toString().replace('.', ',')}
                                         </Text>
                                     </View>
                                     <TouchableOpacity
@@ -107,13 +136,12 @@ const Favorites = (props) => {
 
 const styles = StyleSheet.create({
     header: {
-        padding: 15,
-        paddingVertical: 20,
+        paddingVertical: 15,
         flexDirection: 'row',
         backgroundColor: Colors.white,
         shadowColor: Colors.black,
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.8,
+        shadowOffset: {width: 0, height: 1},
+        shadowOpacity: 0.6,
         elevation: 1,
         zIndex: 1,
     },
@@ -123,7 +151,6 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: Colors.primary,
-        paddingLeft: 10
     },
     productContainer: {
         marginHorizontal: 10

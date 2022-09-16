@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import api from '../../services/api'
 import ProductListItem from '../../components/ProductList/ProductListItem';
-import Container from '../../components/Container';
+import Container from '../../components/core/Container';
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import Colors from '../../styles/Colors';
 
@@ -13,10 +13,15 @@ const Seller = ({ route }) => {
     const [products, setProducts] = useState([])
     const navigation = useNavigation()
     const item = route.params
-
+    
     async function loadProducts() {
-        const res = await api.get('/seller/products', {params: {sellerId: item.seller._id}})
-        setProducts(res.data)
+        try {
+            const res = await api.get(`/seller/${item.seller._id}`)
+            const response = res.data
+            setProducts(response.products)
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     useEffect(() => {

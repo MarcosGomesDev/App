@@ -23,35 +23,36 @@ const config = {
 
 const App = () => {
     const [enabled, setEnabled] = useState(false)
-
+    const [loading, setLoading] = useState(false)
     const listener = addListener(({ locationEnabled }) => {
         setEnabled(locationEnabled)
     });
-
 
     checkSettings(config)
 
     useEffect(() => {
         LogBox.ignoreLogs(['new NativeEventEmitter'])
         LogBox.ignoreAllLogs()
-        
-        if (!enabled) {
-            Alert.alert(
-                'Localização desativada',
-                'Por favor ative a localização para usar o aplicativo',
-                [
-                    { text: 'Cancelar', onPress: () => {} },
-                    { text: 'OK', onPress: () => requestResolutionSettings(config) },
-                ],
-            )
-        }
 
+        setTimeout(() => {
+            setLoading(true)
+            if (!enabled) {
+                Alert.alert(
+                    'Localização desativada',
+                    'Por favor ative a localização para usar o aplicativo',
+                    [
+                        { text: 'Cancelar', onPress: () => {} },
+                        { text: 'OK', onPress: () => requestResolutionSettings(config) },
+                    ],
+                )
+            }
+        }, 1000)
     }, [])
     
     return (
         <LoginProvider>
             <Provider store={store}>
-                <Routes />
+                {loading ? <Routes /> : null}
             </Provider>
         </LoginProvider>
     )

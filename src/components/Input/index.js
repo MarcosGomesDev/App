@@ -1,6 +1,6 @@
-import React, {useState, forwardRef, useImperativeHandle, createRef} from 'react'
+import React, {useState, forwardRef, useImperativeHandle, createRef, useEffect} from 'react'
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Platform } from 'react-native'
-
+import { useSelector } from 'react-redux'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import Colors from '../../styles/Colors'
 
@@ -9,6 +9,7 @@ import { widthPercent, heightPercent } from '../../utils/dimensions'
 const Input = forwardRef((props, ref) => {
     const [secureEntry, setSecureEntry] = useState(props.secureTextEntry)
     const [error, setError] = useState(false)
+    let toastfy = useSelector((state) => state.toast)
     const inputRef = createRef()
 
     useImperativeHandle(ref, () => ({
@@ -20,6 +21,11 @@ const Input = forwardRef((props, ref) => {
             setError(false)
         }
     }))
+
+    useEffect(() => {
+        toastfy.show
+    }, [toastfy])
+
     return (
         <View style={styles.container}>
             <View style={styles.titleContainer}>
@@ -28,14 +34,14 @@ const Input = forwardRef((props, ref) => {
             <View style={[
                 styles.inputContainer,
                 {
-                    borderBottomColor: error ? Colors.danger : Colors.primary
+                    borderBottomColor: toastfy.show ? Colors.danger : Colors.primary,
                 }
             ]}>
                 <View style={{justifyContent: 'center'}}>
                     <Icon
                         name={props.iconName}
                         size={24}
-                        color={error ? Colors.danger : Colors.primary}
+                        color={toastfy.show ? Colors.danger : Colors.primary}
                     />
                 </View>
                 <TextInput

@@ -1,113 +1,117 @@
 
-import React, {useState, useEffect} from 'react';
-import { SafeAreaView, ScrollView, View, TouchableOpacity, Text, TextInput, 
-StyleSheet, Image } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { View, TouchableOpacity, Text, 
+StyleSheet, ActivityIndicator } from 'react-native';
+import Container from '../../../components/core/Container'
 
-import Container from '../../../components/Container';
 import Colors from '../../../styles/Colors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
-
-const fundo = 'https://res.cloudinary.com/gomesdev/image/upload/v1654276325/download_eaicvj.png'
+import Form from '../../../components/FormProduct'
+import {useLogin} from '../../../context/LoginProvider'
+import { useNavigation } from '@react-navigation/native';
+import {showToast} from '../../../store/modules/toast/actions'
+import { removeData } from '../../../utils/storage';
+import { useDispatch } from 'react-redux';
 
 const NewProduct = () => {
+    const {profile} = useLogin()
     const navigation = useNavigation()
+    const dispatch = useDispatch()
+    const [loading, setLoading] = useState(false)
+
+    async function createProduct(product) {
+        if(product.name === '' || product.price === "" || product.category === "" || product.subcategory === "" || product.images === "") {
+            dispatch(showToast('Preencha todos os campos!', 'error', 'error'))
+            return
+        }
+
+        const data = new FormData();
+        Object.keys(product).forEach((key) => {
+            if(key === 'images') {
+                for(let i = 0; i < product[key].length; i++) {
+                    data.append('images', {
+                        name: new Date() + 'product',
+                        uri: product[key][i],
+                        type: 'image/png'
+                    })
+                }
+            } else {
+                data.append(key, product[key])
+            }
+        })
+        
+        setLoading(true)
+        const response = await fetch('http://192.168.0.101:3003/product/create', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'content-type': 'multipart/form-data',
+                // authorization: `Bearer ${profile.token}`
+            },
+            body: data
+        })
+
+        const res = await response.json()
+
+        if(response.status === 201){
+            setLoading(false)
+            dispatch(showToast(res, 'sucess', 'sucess'))
+            navigation.goBack
+        }
+        if(response.status === 413) {
+            setLoading(false)
+            dispatch(showToast(res, 'error', 'error'))
+            removeData()
+            setIsLoggedIn(false)
+        }
+    }
 
     return (
-        <Container>
+        <Container color="#fff">
             <View style={styles.header}>
                 <TouchableOpacity
-                    // style={{paddingVertical: 20, paddingHorizontal: 10}}
+                    style={{height: 50, width: 50, alignItems: 'center',
+                    zIndex: 20, borderRadius: 150, justifyContent: 'center',}}
                     onPress={navigation.goBack}
                 >
-                    <Icon name="arrow-back" size={26} color={Colors.primary} />
+                    <Icon
+                        name="arrow-back"
+                        size={25}
+                        color={Colors.primary}
+                    />
                 </TouchableOpacity>
                 <Text style={styles.title}>
                     Criar Produto
                 </Text>
             </View>
-            <KeyboardAwareScrollView
-                extraScrollHeight={20}
-            >
-            <ScrollView
-                style={{padding: 10}}
-            >
-                <View style={styles.formContainer}>
-                    <Text style={styles.titleInput}>
-                        Título do produto
-                    </Text>
-                    <TextInput
-                        placeholder="Bolo de cenoura"
-                        placeholderTextColor="#aaa"
-                        style={styles.input}
-                    />
-                    <Text style={styles.titleInput}>
-                        Preço do produto
-                    </Text>
-                    <TextInput
-                        placeholder="R$ 30,00"
-                        placeholderTextColor="#aaa"
-                        keyboardType='numeric'
-                        style={styles.input}
-                    />
-                    <Text style={styles.titleInput}>
-                        Título do produto
-                    </Text>
-                    <TextInput
-                        placeholder="Bolo de cenoura"
-                        placeholderTextColor="#aaa"
-                        style={styles.input}
-                    />
-                    <Text style={styles.titleInput}>
-                        Images
-                    </Text>
-                    <View style={{flexDirection: 'row'}}>
-                        <TouchableOpacity
-                            style={{width: '33.33%', alignSelf: 'flex-start', marginHorizontal: 3}}
-                        >
-                            <Image style={styles.productImage} source={{uri: fundo}} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={{width: '33.33%', alignSelf: 'center', marginHorizontal: 3}}
-                        >
-                            <Image style={styles.productImage} source={{uri: fundo}} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={{width: '33.33%', alignSelf: 'flex-end', marginHorizontal: 3}}
-                        >
-                            <Image
-                                style={styles.productImage}
-                                source={{uri: fundo}}
-                            />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-                <TouchableOpacity style={styles.btn}>
-                    <Text style={styles.textBtn}>Criar Produto</Text>
-                </TouchableOpacity>
-            </ScrollView>
-            </KeyboardAwareScrollView>
+            <Form
+                handleSubmit={createProduct}
+                titleBtn={loading ? (
+                    <ActivityIndicator 
+                        size={24}
+                        color={Colors.white}
+                    />) : 'Criar produto'}
+            />
         </Container>
     );
 };
 
 const styles = StyleSheet.create({
     header: {
-        padding: 15,
-        paddingVertical: 20,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: Colors.white,
         shadowColor: Colors.black,
         shadowOffset: {width: 0, height: 1},
         shadowOpacity: 0.6,
-        elevation: 1,
-        zIndex: 1,
+        elevation: 10,
+        zIndex: 10,
         marginBottom: 5
     },
     title: {
-        width: '80%',
+        width: '70%',
         color: Colors.primary,
         fontSize: 18,
         fontWeight: 'bold',
@@ -115,31 +119,9 @@ const styles = StyleSheet.create({
     },
     formContainer: {
         alignItems: 'center',
-        margin: 10,
-        marginBottom: 20
-    },
-    titleInput: {
-        marginBottom: 10,
-        textAlign: 'left',
-        color: Colors.primary,
-        fontSize: 14,
-        fontWeight: 'bold',
-        alignSelf: 'flex-start',
-        paddingLeft: 10
-    },
-    input: {
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.primary,
-        width:"100%",
-        marginBottom: 20,
-        paddingBottom: 10,
-        paddingLeft: 5,
-        fontSize: 16,
-        color: Colors.primary,
-    },
-    productImage: {
-        width: '100%',
-        height: 100,
+        marginVertical: 15,
+        marginHorizontal: 10,
+        paddingBottom: 20
     },
     btn: {
         width: '100%',
@@ -147,7 +129,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primary,
         borderRadius: 15,
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
     },
     textBtn: {
         fontSize: 16,

@@ -5,23 +5,27 @@ import { createDrawerNavigator } from '@react-navigation/drawer'
 
 import {DEFAULT_SCREEN_OPTIONS} from '../navigation/options'
 import {useLogin} from '../context/LoginProvider'
+
 const Stack = createStackNavigator()
 const Drawer = createDrawerNavigator()
 
-import Main from '../screens/Main'
-import Profile from '../screens/Profile'
-import Settings from '../screens/Settings'
-import Search from '../screens/Search'
+//SCREENS FOR USER
+import Main from '../screens/UserScreens/Main'
+import Search from '../screens/UserScreens/Search'
 import Favorites from '../screens/UserScreens/Favorites'
-import Seller from '../screens/Seller'
-import ResultSearch from '../screens/ResultSearch'
+import ResultSearch from '../screens/UserScreens/ResultSearch'
 
+//SCREENS FOR SELLER
 import EditProduct from '../screens/SellerScreens/EditProduct'
 import NewProduct from '../screens/SellerScreens/NewProduct'
-import ProductItem from '../screens/ProductItem'
+import MainSeller from '../screens/SellerScreens/Main'
 
+//SCREENS DEFAULT
 import CustomDrawer from '../components/CustomDrawer'
-import Products from '../screens/SellerScreens/Products'
+import Profile from '../screens/Profile'
+import ProductItem from '../screens/ProductItem'
+import Settings from '../screens/Settings'
+import Seller from '../screens/Seller'
 
 import Colors from '../styles/Colors'
 import Icon from 'react-native-vector-icons/MaterialIcons'
@@ -39,13 +43,14 @@ const SellerDrawer = () => {
                     borderRadius: 0, paddingLeft: 10, marginTop: 0}
                 }
             }
+
             drawerContent={props => <CustomDrawer {...props} />}
         >
             <Drawer.Screen
                 options={{
                     drawerIcon: (() => <Icon name="storage" size={20} color={Colors.primary} />)
                 }}
-                name="Meus produtos" component={Products}
+                name="Meus produtos" component={MainSeller}
             />
             <Drawer.Screen
                 options={{
@@ -117,7 +122,7 @@ const AuthRoutes = () => {
 
     return (
         <Stack.Navigator
-            screenOptions={DEFAULT_SCREEN_OPTIONS}
+            screenOptions={{headerShown: false}}
         >
             <Stack.Screen name="Main" component={profile.seller === true ? SellerDrawer : UserDrawer} />
             <Stack.Screen name="EditProduct" component={EditProduct} />
